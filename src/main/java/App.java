@@ -1,6 +1,7 @@
 
 import java.io.*;
 import nn.*;
+import nncoach.ColorPrinter;
 import nncoach.TestCase;
 import nncoach.TestResult;
 import nncoach.TrainCase;
@@ -10,27 +11,23 @@ import nncoach.TrainCase;
  */
 public class App {
 
+    private final static String PATH_TRAIN = "./data/mnist_train_short.csv";
+    private final static String PATH_TEST = "./data/mnist_test_short.csv";
+
+
+    public String getGreeting() {
+        return "Hello";
+    }
+
 
     public static void main(final String[] args) {
 
-        Network network = initNetwork();
+        Network network = new Network(784, 200, 10);
 
         train(network, new File(PATH_TRAIN), 784, 255.0);
         test(network, new File(PATH_TEST), 784, 255.0);
 
         System.out.println("Done");
-    }
-
-    private final static String PATH_TRAIN = "./data/mnist_train_short.csv";
-    private final static String PATH_TEST = "./data/mnist_test_short.csv";
-
-
-    private static Network initNetwork() {
-        Network network = new Network();
-        network.addLayer(784);
-        network.addLayer(200);
-        network.addLayer(10);
-        return network;
     }
 
 
@@ -92,17 +89,13 @@ public class App {
 
     private static void test(Network n, File testData, int inputsize, double scale) {
         try (BufferedReader reader = new BufferedReader(new FileReader(testData))) {
+
             String line;
-
             while ((line = reader.readLine()) != null) {
-
                 TestCase testCase = readTestRowFromLine(line, inputsize, scale);
-
                 TestResult res = makeTest(n, testCase);
-
-                printTestResult(res);
+                ColorPrinter.print(res);
             }
-
 
         } catch (IOException e) {
             System.out.println(e.getMessage());
@@ -113,42 +106,6 @@ public class App {
 
     private static TestResult makeTest(Network n, TestCase testCase) {
         double[] results = n.query(testCase.getInputs());
-
         return new TestResult(testCase.getExpectation(), results);
-    }
-
-
-
-    private static void printTestResult(TestResult result) {
-        if (result.isSuccessful()) {
-            System.out.print(toGreen("SUCCESS: ") + "expected " + result.getExpectation() + " Got " + result.getActual());
-        } else {
-            System.out.print(toRed("FAIL: ") + "expected" + result.getExpectation() + " Got " + result.getActual());
-        }
-
-        for (int i = 0; i < result.getValues().length; i++) {
-            if (i == result.getExpectation() && result.isSuccessful()) {
-                System.out.print(toGreen(String.format("% .2f", result.getValues()[i])));
-            } else if (i == result.getExpectation()) {
-                System.out.print(toYellow(String.format("% .2f", result.getValues()[i])));
-            } else if(i == result.getActual()) {
-                System.out.print(toRed(String.format("% .2f", result.getValues()[i])));
-            } else {
-                System.out.printf("% .2f", result.getValues()[i]);
-            }
-        }
-        System.out.println();
-    }
-
-    private static String toRed(String string) {
-        return "\033[31m" + string + "\033[0m";
-    }
-
-    private static String toGreen(String string) {
-        return "\033[32m" + string + "\033[0m";
-    }
-
-    private static String toYellow(String string) {
-        return "\033[33m" + string + "\033[0m";
     }
 }

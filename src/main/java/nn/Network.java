@@ -11,6 +11,15 @@ public class Network {
         layers = new ArrayList<>();
     }
 
+    public Network(int... neuronsPerLayer) {
+        this();
+
+        for (int neuronsInLayer: neuronsPerLayer) {
+            this.addLayer(neuronsInLayer);
+        }
+
+    }
+
     public void addLayer(int numberOfNeurons) {
         layers.add(new Layer(layers.size() + 1, numberOfNeurons));
 
